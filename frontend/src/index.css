@@ -1,0 +1,83 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f5f5f4;
+  margin: 0;
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 300px;
+  margin-bottom: 1rem;
+}
+
+.bubble {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: #4338ca;
+  color: white;
+}
+
+.bubble.assistant {
+  align-self: flex-start;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.bubble .role {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.bubble p {
+  margin: 0.25rem 0 0;
+  white-space: pre-wrap;
+}
+
+.composer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.composer input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.composer button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  background: #4338ca;
+  color: white;
+  cursor: pointer;
+}
+
+.composer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #b91c1c;
+}
