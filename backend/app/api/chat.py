@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent.loop import run_agent_loop
 from app.db.database import get_session
 from app.db.models import Conversation, Message
-from app.llm.client import get_llm_client
 from app.schemas import ChatRequest, ChatResponse, MessageOut
 
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -25,12 +25,9 @@ async def chat(
 
     history = await _load_history(session, conversation.id)
 
-    llm = get_llm_client()
-    response = await llm.complete(
-        messages=[{"role": m.role, "content": m.content} for m in history]
-    )
-    reply_text = "".join(
-        block.text for block in response.content if block.type == "text"
+    reply_text = await run_agent_loop(
+        session,
+        messages=[{"role": m.role, "content": m.content} for m in history],
     )
 
     assistant_message = Message(

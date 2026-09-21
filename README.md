@@ -13,12 +13,22 @@ calling (Anthropic).
   cualquier desarrollador pueda continuarlos.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisiones de diseño puntuales.
 
-## Estado actual: Fase 1 (Sprint 0 + Sprint 1)
+## Estado actual: Sprints 0, 1 y 2
 
 Lo que funciona hoy: un endpoint de chat (`POST /api/chat`) que mantiene
-historial de conversación en SQLite y llama al LLM **sin tool calling
-todavía**. Esto valida la base (persistencia, wiring del cliente LLM, CORS,
-frontend) antes de sumar herramientas (Sprint 2+, documentado en el roadmap).
+historial de conversación en SQLite y que puede decidir consultar la agenda
+de eventos vía tool calling nativo del LLM (`buscar_eventos`, con parámetros
+tipados y sin SQL libre). Búsqueda web y email simulado quedan para el
+Sprint 3 (ver `docs/ROADMAP.md`).
+
+Para probar la herramienta de eventos con datos de ejemplo:
+
+```bash
+cd backend && python -m scripts.seed_events
+```
+
+Y luego preguntarle al agente algo como *"¿hay algún evento agendado
+mañana?"*.
 
 ## Cómo correrlo
 

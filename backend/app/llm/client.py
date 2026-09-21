@@ -7,17 +7,16 @@ from app.config import get_settings
 SYSTEM_PROMPT = (
     "Sos un asistente que ayuda a organizar tareas relacionadas a eventos, "
     "clima y notificaciones por email. Respondé siempre en español, de forma "
-    "breve y concreta."
+    "breve y concreta. Cuando necesites saber si hay eventos agendados en una "
+    "fecha o rango de fechas, usá la herramienta `buscar_eventos` en vez de "
+    "inventar la respuesta."
 )
 
 
 class LLMClient:
-    """Wrapper fino sobre el SDK de Anthropic.
-
-    En Fase 1 (Sprint 1) se usa sin `tools`. La firma ya acepta un parámetro
-    `tools` opcional para que Sprint 2 pueda sumar tool calling sin tener que
-    tocar este wrapper.
-    """
+    """Wrapper fino sobre el SDK de Anthropic. `tools` es opcional: el loop
+    del agente (`app/agent/loop.py`) lo pasa siempre; otros callers pueden
+    omitirlo para una llamada simple sin tool calling."""
 
     def __init__(self) -> None:
         settings = get_settings()

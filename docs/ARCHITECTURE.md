@@ -103,11 +103,19 @@ backend/
       database.py      # engine, session factory, init_db()
       models.py         # Event, SentEmail, Conversation, Message
     llm/
-      client.py         # Wrapper del cliente Anthropic (chat sin tools en Fase 1)
+      client.py         # Wrapper del cliente Anthropic (acepta tools opcionales)
+    tools/
+      events.py          # Tool `buscar_eventos`: schema + handler parametrizado
+      registry.py         # TOOL_REGISTRY: name -> ToolSpec(schema, handler)
+    agent/
+      loop.py             # Ciclo ReAct: llama al LLM, ejecuta tools, repite
     api/
-      chat.py            # POST /api/chat — loop del agente (Sprint 1: sin tools)
+      chat.py            # POST /api/chat — arma el historial y llama a run_agent_loop
   tests/
     test_chat.py
+    test_agent_loop.py
+  scripts/
+    seed_events.py     # Carga eventos de ejemplo para probar buscar_eventos
   requirements.txt
   Dockerfile
   .env.example
@@ -123,22 +131,29 @@ docs/
 docker-compose.yml
 ```
 
-## Alcance implementado en esta entrega ("Fase 1")
+## Alcance implementado hasta ahora
 
-Se implementó **Sprint 0 (setup)** y **Sprint 1 (loop básico sin herramientas)**
-del roadmap original:
+Se implementaron **Sprint 0 (setup)**, **Sprint 1 (loop básico sin
+herramientas)** y **Sprint 2 (primera herramienta: consulta a BD)** del
+roadmap original:
 
 - Scaffolding de FastAPI (backend) y React+Vite (frontend).
 - Cliente LLM (Anthropic) configurado y probado con un endpoint de chat real.
 - Tablas `events`, `sent_emails`, `conversations`, `messages` creadas en SQLite
   vía SQLAlchemy.
 - Endpoint `POST /api/chat` que mantiene historial de mensajes por conversación
-  y llama al LLM **sin tool calling todavía** (eso es Sprint 2+).
-- Frontend mínimo que consume ese endpoint y muestra la conversación.
+  y llama al ciclo del agente (`run_agent_loop`).
+- **Tool calling real:** el agente puede llamar a `buscar_eventos` (parámetros
+  tipados, sin SQL libre) cuando lo necesita, vía el ciclo ReAct implementado
+  en `app/agent/loop.py`, con un registro de herramientas declarativo
+  (`app/tools/registry.py`) pensado para sumar `buscar_web` y `enviar_email`
+  en Sprint 3 sin tocar el loop.
+- Frontend mínimo que consume el endpoint de chat y muestra la conversación
+  (todavía no muestra la traza de tool calling — eso es Sprint 4).
 - `Dockerfile` + `docker-compose.yml` para correr el stack completo localmente
   (pipeline de "deploy" local, ver `ROADMAP.md` para deploy real en Sprint 6).
 
-Los Sprints 2 a 6 (tool calling real, streaming/traza, robustez, deploy final)
-**no están implementados** en esta entrega; quedan completamente documentados
+Los Sprints 3 a 6 (búsqueda web + email, streaming/traza, robustez, deploy
+final) **no están implementados** todavía; quedan completamente documentados
 en `ROADMAP.md` con su diseño técnico para que cualquier desarrollador pueda
 continuarlos sin tener que re-derivar decisiones.

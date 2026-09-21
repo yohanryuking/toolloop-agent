@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
-import app.api.chat as chat_module
+import app.agent.loop as loop_module
 from app.main import app
 
 
@@ -16,6 +16,7 @@ class FakeTextBlock:
 @dataclass
 class FakeResponse:
     content: list[Any]
+    stop_reason: str = "end_turn"
 
 
 class FakeLLMClient:
@@ -25,7 +26,7 @@ class FakeLLMClient:
 
 
 def test_chat_creates_conversation_and_persists_history(monkeypatch):
-    monkeypatch.setattr(chat_module, "get_llm_client", lambda: FakeLLMClient())
+    monkeypatch.setattr(loop_module, "get_llm_client", lambda: FakeLLMClient())
 
     with TestClient(app) as client:
         response = client.post("/api/chat", json={"message": "hola"})
@@ -48,7 +49,7 @@ def test_chat_creates_conversation_and_persists_history(monkeypatch):
 
 
 def test_chat_with_unknown_conversation_id_returns_404(monkeypatch):
-    monkeypatch.setattr(chat_module, "get_llm_client", lambda: FakeLLMClient())
+    monkeypatch.setattr(loop_module, "get_llm_client", lambda: FakeLLMClient())
 
     with TestClient(app) as client:
         response = client.post(

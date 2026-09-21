@@ -1,6 +1,6 @@
 # Roadmap — toolloop-agent
 
-Estado: **Sprint 0 y Sprint 1 implementados.** Sprints 2-6 documentados a
+Estado: **Sprints 0, 1 y 2 implementados.** Sprints 3-6 documentados a
 continuación como guía de continuación (diseño técnico, no solo la idea
 general del sprint).
 
@@ -26,47 +26,37 @@ general del sprint).
 
 ---
 
-## ⬜ Sprint 2 — Primera herramienta: consulta a BD
+## ✅ Sprint 2 — Primera herramienta: consulta a BD (implementado)
 
-**Objetivo:** el agente puede decidir consultar eventos en la BD.
+El agente ahora puede decidir consultar eventos en la BD.
 
-Diseño:
+- [x] Tool schema `buscar_eventos` (formato Anthropic `tools=[...]`) en
+      `app/tools/events.py`, con `fecha_inicio`/`fecha_fin` como únicos
+      parámetros (tipos primitivos, nunca un "query" libre).
+- [x] `app/tools/events.py::buscar_eventos(session, raw_input)` valida los
+      parámetros con Pydantic (`BuscarEventosInput`) y ejecuta una query
+      parametrizada contra `events` con SQLAlchemy — nunca SQL crudo.
+- [x] `app/agent/loop.py::run_agent_loop()` reemplaza la llamada directa y
+      simple de Sprint 1: llama al LLM con `tools=tool_schemas()`, y si
+      `stop_reason == "tool_use"` ejecuta la(s) función(es) Python
+      correspondientes, arma los `tool_result` y vuelve a llamar al LLM;
+      si `stop_reason == "end_turn"` devuelve la respuesta final. Incluye un
+      límite duro de iteraciones (`MAX_ITERATIONS`) como salvaguarda mínima
+      contra loops infinitos — el manejo robusto (respuesta explicativa al
+      usuario en vez de excepción, logging) queda para Sprint 5.
+- [x] Registro de herramientas declarativo: `app/tools/registry.py::TOOL_REGISTRY`
+      mapea `name -> ToolSpec(schema, handler)`. Agregar una herramienta nueva
+      (Sprint 3) es agregar una entrada al dict.
+- [x] Tests (`tests/test_agent_loop.py`): mockean la respuesta del LLM en dos
+      turnos (uno con `tool_use`, otro con la respuesta final) y verifican que
+      se ejecuta `buscar_eventos` con los parámetros correctos contra una BD
+      SQLite en memoria; también cubren el corte por `MAX_ITERATIONS`.
+- [x] `backend/scripts/seed_events.py`: inserta un par de eventos de ejemplo
+      (uno al aire libre) para poder probar la tool sin cargar datos a mano.
 
-1. Definir el tool schema para el LLM (formato Anthropic `tools=[...]`):
-   ```json
-   {
-     "name": "buscar_eventos",
-     "description": "Busca eventos programados en un rango de fechas.",
-     "input_schema": {
-       "type": "object",
-       "properties": {
-         "fecha_inicio": {"type": "string", "format": "date"},
-         "fecha_fin": {"type": "string", "format": "date"}
-       },
-       "required": ["fecha_inicio", "fecha_fin"]
-     }
-   }
-   ```
-2. Implementar `app/tools/events.py::buscar_eventos(fecha_inicio, fecha_fin)`
-   que valida los parámetros (Pydantic) y ejecuta una query parametrizada
-   contra `events` con SQLAlchemy (nunca SQL crudo con f-strings).
-3. En `app/agent/loop.py` (nuevo módulo — reemplaza la llamada directa y simple
-   de Sprint 1), extender el loop:
-   - Llamar al LLM con `tools=[buscar_eventos_schema]`.
-   - Si `stop_reason == "tool_use"`: parsear el `tool_use` block, ejecutar la
-     función Python correspondiente, construir un mensaje `tool_result` y
-     volver a llamar al LLM con el historial actualizado.
-   - Si `stop_reason == "end_turn"`: devolver la respuesta final.
-4. Un **registro de herramientas** (`TOOL_REGISTRY: dict[str, ToolSpec]`) que
-   mapea `name -> (schema, función Python, modelo Pydantic de input)` para que
-   agregar herramientas nuevas (Sprint 3) sea declarativo.
-5. Tests: mockear la respuesta del LLM (dos turnos: uno con `tool_use`, otro
-   con la respuesta final) y verificar que se ejecuta la función correcta con
-   los parámetros correctos.
-
-**Nota de diseño:** el LLM nunca debe poder pasar un string SQL como parámetro.
-Los parámetros del schema son siempre tipos primitivos (fechas, strings,
-enums), nunca "query" o "filter" libres.
+**Nota de diseño (se mantiene):** el LLM nunca pasa un string SQL como
+parámetro. Los parámetros del schema son siempre tipos primitivos (fechas),
+nunca "query" o "filter" libres.
 
 ## ⬜ Sprint 3 — Segunda y tercera herramienta
 
