@@ -8,27 +8,35 @@ calling (Anthropic).
 📄 **Documentación completa:**
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitectura, stack, modelo
   de datos y por qué se eligió SQLite/SQLAlchemy en vez de Supabase.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprint 0 y 1)
-  y el diseño técnico detallado de los sprints restantes (2 a 6) para que
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 3)
+  y el diseño técnico detallado de los sprints restantes (4 a 6) para que
   cualquier desarrollador pueda continuarlos.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisiones de diseño puntuales.
 
-## Estado actual: Sprints 0, 1 y 2
+## Estado actual: Sprints 0, 1, 2 y 3
 
 Lo que funciona hoy: un endpoint de chat (`POST /api/chat`) que mantiene
-historial de conversación en SQLite y que puede decidir consultar la agenda
-de eventos vía tool calling nativo del LLM (`buscar_eventos`, con parámetros
-tipados y sin SQL libre). Búsqueda web y email simulado quedan para el
-Sprint 3 (ver `docs/ROADMAP.md`).
+historial de conversación en SQLite y que puede encadenar tres herramientas
+vía tool calling nativo del LLM:
 
-Para probar la herramienta de eventos con datos de ejemplo:
+- `buscar_eventos`: consulta la agenda interna (parámetros tipados, sin SQL
+  libre).
+- `buscar_web`: búsqueda web mockeada por defecto (ej. clima), o real si se
+  configura `TAVILY_API_KEY`.
+- `enviar_email`: "envía" un email insertando un row en `sent_emails` (sin
+  SMTP real), solo cuando el usuario lo pide explícitamente.
+
+Streaming de la traza paso a paso queda para el Sprint 4 (ver
+`docs/ROADMAP.md`).
+
+Para probar con datos de ejemplo:
 
 ```bash
 cd backend && python -m scripts.seed_events
 ```
 
-Y luego preguntarle al agente algo como *"¿hay algún evento agendado
-mañana?"*.
+Y luego preguntarle al agente algo como *"revisá el clima de mañana y si
+tenemos un evento al aire libre ese día, avisá al equipo por email"*.
 
 ## Cómo correrlo
 

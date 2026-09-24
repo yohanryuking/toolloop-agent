@@ -106,6 +106,9 @@ backend/
       client.py         # Wrapper del cliente Anthropic (acepta tools opcionales)
     tools/
       events.py          # Tool `buscar_eventos`: schema + handler parametrizado
+      web_search.py        # Tool `buscar_web`: mock por defecto, Tavily real si hay API key
+      mock_web_data.py      # Dataset local para las respuestas simuladas de buscar_web
+      email.py               # Tool `enviar_email`: inserta un row en sent_emails
       registry.py         # TOOL_REGISTRY: name -> ToolSpec(schema, handler)
     agent/
       loop.py             # Ciclo ReAct: llama al LLM, ejecuta tools, repite
@@ -114,6 +117,7 @@ backend/
   tests/
     test_chat.py
     test_agent_loop.py
+    test_tools.py
   scripts/
     seed_events.py     # Carga eventos de ejemplo para probar buscar_eventos
   requirements.txt
@@ -134,8 +138,8 @@ docker-compose.yml
 ## Alcance implementado hasta ahora
 
 Se implementaron **Sprint 0 (setup)**, **Sprint 1 (loop básico sin
-herramientas)** y **Sprint 2 (primera herramienta: consulta a BD)** del
-roadmap original:
+herramientas)**, **Sprint 2 (primera herramienta: consulta a BD)** y
+**Sprint 3 (búsqueda web + email simulado)** del roadmap original:
 
 - Scaffolding de FastAPI (backend) y React+Vite (frontend).
 - Cliente LLM (Anthropic) configurado y probado con un endpoint de chat real.
@@ -143,17 +147,20 @@ roadmap original:
   vía SQLAlchemy.
 - Endpoint `POST /api/chat` que mantiene historial de mensajes por conversación
   y llama al ciclo del agente (`run_agent_loop`).
-- **Tool calling real:** el agente puede llamar a `buscar_eventos` (parámetros
-  tipados, sin SQL libre) cuando lo necesita, vía el ciclo ReAct implementado
-  en `app/agent/loop.py`, con un registro de herramientas declarativo
-  (`app/tools/registry.py`) pensado para sumar `buscar_web` y `enviar_email`
-  en Sprint 3 sin tocar el loop.
+- **Tool calling real con tres herramientas**, todas registradas en
+  `app/tools/registry.py` y ejecutadas por el ciclo ReAct en
+  `app/agent/loop.py`:
+  - `buscar_eventos`: consulta parametrizada a la BD (sin SQL libre).
+  - `buscar_web`: mock por defecto (`app/tools/mock_web_data.py`), o Tavily
+    real si hay `TAVILY_API_KEY` configurada.
+  - `enviar_email`: inserta un row en `sent_emails` (sin SMTP real), solo
+    cuando el usuario lo pide explícitamente (reforzado en el system prompt).
 - Frontend mínimo que consume el endpoint de chat y muestra la conversación
   (todavía no muestra la traza de tool calling — eso es Sprint 4).
 - `Dockerfile` + `docker-compose.yml` para correr el stack completo localmente
   (pipeline de "deploy" local, ver `ROADMAP.md` para deploy real en Sprint 6).
 
-Los Sprints 3 a 6 (búsqueda web + email, streaming/traza, robustez, deploy
-final) **no están implementados** todavía; quedan completamente documentados
-en `ROADMAP.md` con su diseño técnico para que cualquier desarrollador pueda
-continuarlos sin tener que re-derivar decisiones.
+Los Sprints 4 a 6 (streaming/traza, robustez, deploy final) **no están
+implementados** todavía; quedan completamente documentados en `ROADMAP.md`
+con su diseño técnico para que cualquier desarrollador pueda continuarlos sin
+tener que re-derivar decisiones.

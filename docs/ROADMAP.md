@@ -1,6 +1,6 @@
 # Roadmap — toolloop-agent
 
-Estado: **Sprints 0, 1 y 2 implementados.** Sprints 3-6 documentados a
+Estado: **Sprints 0, 1, 2 y 3 implementados.** Sprints 4-6 documentados a
 continuación como guía de continuación (diseño técnico, no solo la idea
 general del sprint).
 
@@ -58,22 +58,33 @@ El agente ahora puede decidir consultar eventos en la BD.
 parámetro. Los parámetros del schema son siempre tipos primitivos (fechas),
 nunca "query" o "filter" libres.
 
-## ⬜ Sprint 3 — Segunda y tercera herramienta
+## ✅ Sprint 3 — Segunda y tercera herramienta (implementado)
 
-- **Búsqueda web** (`buscar_web(query: str)`): mock por defecto (respuestas
-  fijas o basadas en un pequeño dataset local en `app/tools/mock_web_data.py`),
-  con posibilidad de swap a una API real (ej. Brave Search, Tavily, SerpAPI) si
-  hay una API key configurada — el mismo patrón que Stripe en el proyecto
-  anterior: **interfaz igual, implementación real opcional**.
-- **Email simulado** (`enviar_email(destinatario: str, asunto: str, cuerpo: str)`):
-  inserta un row en `sent_emails`. No hay SMTP real. El schema del tool no
-  permite adjuntar HTML arbitrario sin sanitizar si en algún momento se
-  renderiza en el frontend (ver Sprint 5, XSS).
-- Registrar ambas en `TOOL_REGISTRY` junto a `buscar_eventos`.
-- Actualizar el system prompt del agente para explicar cuándo usar cada
-  herramienta (ej. "usa `buscar_web` para clima, usa `buscar_eventos` para la
-  agenda interna, usa `enviar_email` solo cuando el usuario lo pida
-  explícitamente").
+- [x] **Búsqueda web** (`app/tools/web_search.py::buscar_web(query: str)`):
+      mock por defecto, con datos fijos en `app/tools/mock_web_data.py`
+      (respuesta de clima si la query menciona "clima"/"weather", resultado
+      genérico en cualquier otro caso). Si hay `TAVILY_API_KEY` configurada,
+      usa la API real de Tavily en su lugar vía `httpx` — mismo patrón que
+      Stripe en el proyecto anterior: **interfaz igual, implementación real
+      opcional**.
+- [x] **Email simulado** (`app/tools/email.py::enviar_email(destinatario,
+      asunto, cuerpo)`): valida el formato del destinatario con Pydantic e
+      inserta un row en `sent_emails`. No hay SMTP real.
+- [x] Ambas registradas en `TOOL_REGISTRY` junto a `buscar_eventos`
+      (`app/tools/registry.py`).
+- [x] System prompt actualizado (`app/llm/client.py`) explicando cuándo usar
+      cada herramienta, y en particular que `enviar_email` solo se usa si el
+      usuario lo pidió explícitamente, nunca por iniciativa propia del
+      agente.
+- [x] Tests: `tests/test_tools.py` (mock de `buscar_web`, inserción y
+      validación de `enviar_email`) y un test de integración en
+      `tests/test_agent_loop.py` que reproduce el escenario completo del
+      brief — clima → evento al aire libre → aviso por email — encadenando
+      las tres herramientas en un solo turno del agente.
+
+**Pendiente / fuera de alcance de este sprint:** sanitizar el `cuerpo` del
+email si en algún momento se renderiza como HTML en el frontend (hoy se
+persiste y se muestra como texto plano) — ver Sprint 5.
 
 ## ⬜ Sprint 4 — Streaming + panel de traza
 

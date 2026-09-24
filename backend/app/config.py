@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./toolloop.db"
     frontend_origin: str = "http://localhost:5173"
 
+    # Opcional: si no se configura, `buscar_web` devuelve resultados mockeados.
+    tavily_api_key: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:
