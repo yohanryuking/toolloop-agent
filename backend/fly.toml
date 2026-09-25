@@ -1,0 +1,32 @@
+# Config de Fly.io para el backend. Correr `fly launch` (o `fly deploy` si ya
+# existe la app) desde el directorio `backend/`. Ver docs/DEPLOY.md para el
+# paso a paso completo.
+
+app = "toolloop-agent-api" # cambiar por un nombre único en Fly.io
+primary_region = "gru"     # São Paulo — el más cercano para LatAm
+
+[build]
+
+[env]
+  # No sensibles: van acá. Las secretas (ANTHROPIC_API_KEY, TAVILY_API_KEY,
+  # FRONTEND_ORIGIN) se configuran con `fly secrets set`, nunca en este archivo.
+  ANTHROPIC_MODEL = "claude-sonnet-4-5"
+  DATABASE_URL = "sqlite+aiosqlite:///./data/toolloop.db"
+
+[[mounts]]
+  source = "toolloop_data"
+  destination = "/app/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"

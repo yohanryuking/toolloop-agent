@@ -126,6 +126,7 @@ backend/
     seed_events.py     # Carga eventos de ejemplo para probar buscar_eventos
   requirements.txt
   Dockerfile
+  fly.toml            # Config de deploy del backend en Fly.io (ver docs/DEPLOY.md)
   .env.example
 frontend/
   src/
@@ -136,6 +137,8 @@ docs/
   ARCHITECTURE.md (este archivo)
   ROADMAP.md
   DECISIONS.md
+  DEPLOY.md           # Guía paso a paso de deploy (Sprint 6)
+  BLOG_POST.md        # Borrador del post sobre el patrón ReAct (Sprint 6)
 docker-compose.yml
 ```
 
@@ -171,10 +174,14 @@ web + email simulado)**, **4 (streaming + panel de traza)** y **5
   de tumbar el request; cada ejecución de herramienta se loguea
   (`app/observability/logger.py`) con `conversation_id`, tool, duración y
   resultado; y `ChatRequest.message` valida longitud mínima/máxima.
-- `Dockerfile` + `docker-compose.yml` para correr el stack completo localmente
-  (pipeline de "deploy" local, ver `ROADMAP.md` para deploy real en Sprint 6).
+- `Dockerfile` + `docker-compose.yml` para correr el stack completo localmente.
+- **Repo listo para deploy** (Sprint 6): `backend/fly.toml` y el `Dockerfile`
+  ajustado para producción (volumen persistente para SQLite), más
+  [`docs/DEPLOY.md`](DEPLOY.md) con el paso a paso completo (Fly.io + Vercel,
+  alternativas, migración a Postgres si hiciera falta) y
+  [`docs/BLOG_POST.md`](BLOG_POST.md) con el borrador del post sobre el
+  patrón ReAct.
 
-El Sprint 6 (deploy final) **no está implementado** todavía; queda
-completamente documentado en `ROADMAP.md` con su diseño técnico para que
-cualquier desarrollador pueda continuarlo sin tener que re-derivar
-decisiones.
+El deploy real y el video demo del Sprint 6 quedan pendientes de ejecución
+manual (requieren cuentas/credenciales propias de hosting) — todo lo demás
+del roadmap original está implementado o preparado.

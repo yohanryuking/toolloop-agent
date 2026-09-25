@@ -1,8 +1,9 @@
 # Roadmap — toolloop-agent
 
-Estado: **Sprints 0 a 5 implementados.** Sprint 6 documentado a continuación
-como guía de continuación (diseño técnico, no solo la idea general del
-sprint).
+Estado: **Sprints 0 a 5 implementados. Sprint 6 con el repo listo para
+deploy** (Dockerfile, fly.toml, guía paso a paso, post borrador) — el deploy
+en sí y el video quedan como acción manual del autor del proyecto, con todo
+documentado para hacerlo sin fricción.
 
 ---
 
@@ -151,22 +152,37 @@ middleware tipo `slowapi` (basado en `limits`) por IP sobre `/api/chat*`, o
 delegarlo a un reverse proxy (nginx, Cloudflare) — no requiere cambios en la
 lógica del agente.
 
-## ⬜ Sprint 6 — Deploy y presentación
+## 🟡 Sprint 6 — Deploy y presentación (repo listo, deploy real pendiente)
 
-- Deploy del backend (ej. Fly.io, Render, Railway) y frontend (ej. Vercel,
-  Netlify) o ambos en el mismo contenedor detrás de un reverse proxy.
-- Si se migra de SQLite a Postgres para este deploy (recomendado si el deploy
-  no tiene disco persistente, como muchos PaaS "serverless"): cambiar
-  `DATABASE_URL` a una URL `postgresql+asyncpg://...` — el código de modelos y
-  queries no cambia gracias a SQLAlchemy.
-- README con arquitectura y decisiones (ya cubierto por `docs/ARCHITECTURE.md`
-  y `docs/DECISIONS.md`, enlazarlos desde el README principal).
-- Video demo con una tarea real multi-paso, por ejemplo la del enunciado
-  original: *"revisa el clima de mañana y si tenemos un evento al aire libre
-  ese día en la BD, redacta un aviso por email."*
-- Post explicando el patrón ReAct y por qué se construyó así (puede basarse
-  directamente en la sección "Por qué cada decisión" del brief original y en
-  `docs/DECISIONS.md`).
+Lo que se puede preparar sin depender de cuentas/credenciales de terceros ya
+está hecho:
+
+- [x] `backend/Dockerfile` ajustado para producción (crea el directorio de
+      datos para el volumen persistente de SQLite).
+- [x] `backend/fly.toml`: config lista para deployar el backend en Fly.io
+      (health check en `/health`, volumen montado, variables no sensibles).
+- [x] [`docs/DEPLOY.md`](DEPLOY.md): guía paso a paso (backend en Fly.io,
+      frontend en Vercel, cómo conectar CORS entre ambos, alternativas
+      Render/Railway/Netlify, y cómo migrar a Postgres si el hosting elegido
+      no tiene disco persistente).
+- [x] [`docs/BLOG_POST.md`](BLOG_POST.md): borrador completo del post
+      explicando el patrón ReAct y las decisiones de diseño del proyecto,
+      listo para publicar (falta completar links personales y el video).
+- [x] README con arquitectura y decisiones (ya cubierto por
+      `docs/ARCHITECTURE.md` y `docs/DECISIONS.md`, enlazados desde el README
+      principal).
+
+**Pendiente — requiere acción manual del autor del proyecto** (no se puede
+automatizar desde acá porque necesita cuentas y credenciales propias):
+
+- [ ] Deployar el backend (Fly.io u otra alternativa) siguiendo
+      `docs/DEPLOY.md`.
+- [ ] Deployar el frontend (Vercel u otra alternativa).
+- [ ] Grabar el video demo con una tarea real multi-paso, ej. *"revisá el
+      clima de mañana y si tenemos un evento al aire libre ese día en la BD,
+      redactá un aviso por email"*.
+- [ ] Publicar el post (`docs/BLOG_POST.md`) completando los datos
+      personales y el link al video.
 
 ---
 

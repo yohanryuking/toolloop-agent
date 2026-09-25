@@ -9,9 +9,12 @@ calling (Anthropic).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitectura, stack, modelo
   de datos y por qué se eligió SQLite/SQLAlchemy en vez de Supabase.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 5)
-  y el diseño técnico detallado del sprint restante (6) para que cualquier
-  desarrollador pueda continuarlo.
+  y el estado del Sprint 6 (repo listo para deploy).
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisiones de diseño puntuales.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — guía paso a paso para deployar
+  (Fly.io + Vercel, alternativas, migración a Postgres si hace falta).
+- [`docs/BLOG_POST.md`](docs/BLOG_POST.md) — borrador del post sobre el
+  patrón ReAct y las decisiones de diseño del proyecto.
 
 ## Estado actual: Sprints 0 a 5
 
@@ -77,6 +80,11 @@ Corre en `http://localhost:5173`.
 export ANTHROPIC_API_KEY=sk-ant-...
 docker compose up --build
 ```
+
+### Deploy
+
+Ver [`docs/DEPLOY.md`](docs/DEPLOY.md) para el paso a paso (backend en
+Fly.io, frontend en Vercel, y cómo conectarlos).
 
 ## Estructura
 
