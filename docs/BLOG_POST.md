@@ -125,4 +125,5 @@ el repo (`docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/DECISIONS.md`).
 Si te interesa el patrón ReAct o estás armando algo parecido, los comentarios
 están abiertos — `[tu contacto / LinkedIn]`.
 
-`[Acá va el video demo mostrando la tarea completa en vivo]`
+`[Acá va el video demo — ya grabado, ver demo/README.md en el repo; subilo a
+donde vayas a publicar el post y pegá el link/embed acá]`

@@ -171,6 +171,13 @@ está hecho:
 - [x] README con arquitectura y decisiones (ya cubierto por
       `docs/ARCHITECTURE.md` y `docs/DECISIONS.md`, enlazados desde el README
       principal).
+- [x] **Video demo grabado**: `backend/scripts/demo_server.py` + `demo/`
+      (Playwright) permiten grabar la tarea completa del brief (clima →
+      evento al aire libre → aviso por email) contra la app real corriendo
+      localmente, con un LLM simulado que sigue el guion — sin gastar una
+      API key de Anthropic real ni depender de que el deploy ya esté hecho.
+      Ver [`demo/README.md`](../demo/README.md) para volver a grabarlo (por
+      ejemplo, después del deploy real, contra el LLM de verdad).
 
 **Pendiente — requiere acción manual del autor del proyecto** (no se puede
 automatizar desde acá porque necesita cuentas y credenciales propias):
@@ -178,9 +185,6 @@ automatizar desde acá porque necesita cuentas y credenciales propias):
 - [ ] Deployar el backend (Fly.io u otra alternativa) siguiendo
       `docs/DEPLOY.md`.
 - [ ] Deployar el frontend (Vercel u otra alternativa).
-- [ ] Grabar el video demo con una tarea real multi-paso, ej. *"revisá el
-      clima de mañana y si tenemos un evento al aire libre ese día en la BD,
-      redactá un aviso por email"*.
 - [ ] Publicar el post (`docs/BLOG_POST.md`) completando los datos
       personales y el link al video.
 

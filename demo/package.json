@@ -1,0 +1,12 @@
+{
+  "name": "toolloop-agent-demo-recorder",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Graba un video de la app con Playwright, sin depender de una API key de Anthropic real.",
+  "scripts": {
+    "record": "node record.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

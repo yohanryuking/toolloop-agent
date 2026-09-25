@@ -127,6 +127,16 @@ pasa por SQLAlchemy, el cambio es de configuración, no de código:
 
 No hace falta tocar `app/db/models.py` ni ninguna query.
 
+## Video demo sin deploy real ni API key
+
+No hace falta esperar al deploy (ni gastar créditos de la API de Anthropic)
+para tener el video: `backend/scripts/demo_server.py` + `demo/` (Playwright)
+graban la tarea completa del brief contra la app real corriendo localmente,
+con un LLM simulado que sigue el guion (clima → evento → email). Ver
+[`demo/README.md`](../demo/README.md) para el paso a paso — y para volver a
+grabarlo más adelante contra el deploy real con el LLM de verdad, si querés
+un video "100% real" además de este.
+
 ## Checklist final del Sprint 6
 
 - [x] Repo preparado para deploy: `Dockerfile` (con directorio de datos),
@@ -134,5 +144,5 @@ No hace falta tocar `app/db/models.py` ni ninguna query.
 - [ ] Backend deployado en Fly.io (o alternativa) — requiere cuenta propia.
 - [ ] Frontend deployado en Vercel (o alternativa) — requiere cuenta propia.
 - [ ] CORS conectado entre ambos (paso 3).
-- [ ] Video demo de la tarea multi-paso del brief.
+- [x] Video demo de la tarea multi-paso del brief (ver sección anterior).
 - [x] Post explicando el patrón ReAct — ver [`docs/BLOG_POST.md`](BLOG_POST.md).

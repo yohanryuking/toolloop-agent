@@ -9,6 +9,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Video del demo (binario, no se versiona; ver demo/README.md para regenerarlo)
+demo/videos/
+
 # Env
 .env
 
