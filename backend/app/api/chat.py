@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agent.loop import AgentError, run_agent_loop, run_agent_stream
+from app.agent.loop import run_agent_loop, run_agent_stream
 from app.db.database import SessionLocal, get_session
 from app.db.models import AgentStep, Conversation, Message
 from app.schemas import AgentStepOut, ChatRequest, ChatResponse, MessageOut
@@ -36,6 +36,7 @@ async def chat(
     reply_text = await run_agent_loop(
         session,
         messages=[{"role": m.role, "content": m.content} for m in history],
+        conversation_id=conversation.id,
     )
 
     assistant_message = Message(
@@ -95,27 +96,25 @@ async def _stream_events(payload: ChatRequest) -> AsyncIterator[str]:
 
         final_text = ""
         step_index = 0
-        try:
-            async for step in run_agent_stream(session, api_messages):
-                if step["type"] == "final":
-                    final_text = step["text"]
-                    yield _sse(step)
-                    break
-
-                session.add(
-                    AgentStep(
-                        conversation_id=conversation.id,
-                        step_index=step_index,
-                        step_type=step["type"],
-                        tool_name=step.get("tool"),
-                        payload=json.dumps(step, default=str),
-                    )
-                )
-                step_index += 1
+        async for step in run_agent_stream(
+            session, api_messages, conversation_id=conversation.id
+        ):
+            if step["type"] == "final":
+                final_text = step["text"]
                 yield _sse(step)
-        except AgentError as exc:
-            final_text = str(exc)
-            yield _sse({"type": "error", "message": final_text})
+                break
+
+            session.add(
+                AgentStep(
+                    conversation_id=conversation.id,
+                    step_index=step_index,
+                    step_type=step["type"],
+                    tool_name=step.get("tool"),
+                    payload=json.dumps(step, default=str),
+                )
+            )
+            step_index += 1
+            yield _sse(step)
 
         assistant_message = Message(
             conversation_id=conversation.id, role="assistant", content=final_text

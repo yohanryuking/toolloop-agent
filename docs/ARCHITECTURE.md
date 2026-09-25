@@ -114,6 +114,8 @@ backend/
       registry.py         # TOOL_REGISTRY: name -> ToolSpec(schema, handler)
     agent/
       loop.py             # run_agent_stream(): generador ReAct; run_agent_loop(): wrapper no-streaming
+    observability/
+      logger.py             # Logger con líneas clave=valor (conversation_id, tool, duration_ms, error)
     api/
       chat.py            # POST /api/chat, POST /api/chat/stream (SSE), GET .../steps
   tests/
@@ -141,8 +143,8 @@ docker-compose.yml
 
 Se implementaron los Sprints **0 (setup)**, **1 (loop básico sin
 herramientas)**, **2 (primera herramienta: consulta a BD)**, **3 (búsqueda
-web + email simulado)** y **4 (streaming + panel de traza)** del roadmap
-original:
+web + email simulado)**, **4 (streaming + panel de traza)** y **5
+(robustez)** del roadmap original:
 
 - Scaffolding de FastAPI (backend) y React+Vite (frontend).
 - Cliente LLM (Anthropic) configurado y probado con un endpoint de chat real.
@@ -163,10 +165,16 @@ original:
   /api/conversations/{id}/steps` permite reconstruir la traza de una
   ejecución pasada. El frontend muestra un panel de chat y un panel de traza
   lado a lado, actualizados en tiempo real.
+- **Robustez**: el límite de iteraciones (`MAX_ITERATIONS`) ya no lanza una
+  excepción — termina en una respuesta explicativa; cualquier fallo de una
+  herramienta se captura y se le pasa al LLM como observación de error en vez
+  de tumbar el request; cada ejecución de herramienta se loguea
+  (`app/observability/logger.py`) con `conversation_id`, tool, duración y
+  resultado; y `ChatRequest.message` valida longitud mínima/máxima.
 - `Dockerfile` + `docker-compose.yml` para correr el stack completo localmente
   (pipeline de "deploy" local, ver `ROADMAP.md` para deploy real en Sprint 6).
 
-Los Sprints 5 y 6 (robustez, deploy final) **no están implementados**
-todavía; quedan completamente documentados en `ROADMAP.md` con su diseño
-técnico para que cualquier desarrollador pueda continuarlos sin tener que
-re-derivar decisiones.
+El Sprint 6 (deploy final) **no está implementado** todavía; queda
+completamente documentado en `ROADMAP.md` con su diseño técnico para que
+cualquier desarrollador pueda continuarlo sin tener que re-derivar
+decisiones.

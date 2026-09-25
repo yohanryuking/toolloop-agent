@@ -69,6 +69,17 @@ def test_chat_creates_conversation_and_persists_history(monkeypatch):
         assert len(data2["history"]) == 4
 
 
+def test_chat_rechaza_mensaje_vacio_o_demasiado_largo(monkeypatch):
+    monkeypatch.setattr(loop_module, "get_llm_client", lambda: FakeLLMClient())
+
+    with TestClient(app) as client:
+        empty = client.post("/api/chat", json={"message": ""})
+        assert empty.status_code == 422
+
+        too_long = client.post("/api/chat", json={"message": "x" * 5000})
+        assert too_long.status_code == 422
+
+
 def test_chat_with_unknown_conversation_id_returns_404(monkeypatch):
     monkeypatch.setattr(loop_module, "get_llm_client", lambda: FakeLLMClient())
 

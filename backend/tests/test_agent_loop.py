@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.agent.loop import AgentError, run_agent_loop
+from app.agent.loop import MAX_ITERATIONS, run_agent_loop, run_agent_stream
 from app.db.models import Base, Event, SentEmail
 import app.agent.loop as loop_module
 from sqlalchemy import select
@@ -87,9 +87,12 @@ async def test_agent_loop_executes_tool_and_returns_final_answer(monkeypatch, se
 
 
 @pytest.mark.asyncio
-async def test_agent_loop_raises_after_max_iterations(monkeypatch, session):
+async def test_agent_loop_max_iterations_devuelve_mensaje_explicativo(monkeypatch, session):
+    calls = {"count": 0}
+
     class AlwaysToolUseLLMClient:
         async def complete(self, messages, tools=None):
+            calls["count"] += 1
             return FakeResponse(
                 content=[
                     FakeToolUseBlock(
@@ -103,8 +106,54 @@ async def test_agent_loop_raises_after_max_iterations(monkeypatch, session):
 
     monkeypatch.setattr(loop_module, "get_llm_client", lambda: AlwaysToolUseLLMClient())
 
-    with pytest.raises(AgentError):
-        await run_agent_loop(session, [{"role": "user", "content": "loop infinito"}])
+    # No debe levantar ninguna excepción: el límite se resuelve con una
+    # respuesta explicativa, no con un crash del request.
+    reply = await run_agent_loop(session, [{"role": "user", "content": "loop infinito"}])
+
+    assert "no pude completar" in reply.lower()
+    assert calls["count"] == MAX_ITERATIONS
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_tool_error_se_convierte_en_observacion(monkeypatch, session):
+    """Si una tool falla (ej. parámetros inválidos), el loop no debe
+    propagar la excepción: la convierte en una observación de error y sigue,
+    dejando que el LLM decida cómo continuar."""
+    calls = {"count": 0}
+
+    class FailingThenRecoveringLLMClient:
+        async def complete(self, messages, tools=None):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                return FakeResponse(
+                    content=[
+                        FakeToolUseBlock(
+                            id="tool_bad",
+                            name="buscar_eventos",
+                            input={"fecha_inicio": "no-es-una-fecha", "fecha_fin": "2026-01-02"},
+                        )
+                    ],
+                    stop_reason="tool_use",
+                )
+            return FakeResponse(
+                content=[FakeTextBlock(text="No pude leer esas fechas, ¿me las repetís?")],
+                stop_reason="end_turn",
+            )
+
+    monkeypatch.setattr(loop_module, "get_llm_client", lambda: FailingThenRecoveringLLMClient())
+
+    events = [
+        step
+        async for step in run_agent_stream(
+            session, [{"role": "user", "content": "eventos en no-es-una-fecha"}]
+        )
+    ]
+
+    observation = next(e for e in events if e["type"] == "observation")
+    assert observation["is_error"] is True
+
+    final = next(e for e in events if e["type"] == "final")
+    assert "repetís" in final["text"]
 
 
 @pytest.mark.asyncio

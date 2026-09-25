@@ -8,16 +8,17 @@ calling (Anthropic).
 📄 **Documentación completa:**
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitectura, stack, modelo
   de datos y por qué se eligió SQLite/SQLAlchemy en vez de Supabase.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 4)
-  y el diseño técnico detallado de los sprints restantes (5 y 6) para que
-  cualquier desarrollador pueda continuarlos.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 5)
+  y el diseño técnico detallado del sprint restante (6) para que cualquier
+  desarrollador pueda continuarlo.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisiones de diseño puntuales.
 
-## Estado actual: Sprints 0 a 4
+## Estado actual: Sprints 0 a 5
 
 Lo que funciona hoy: el agente puede encadenar tres herramientas vía tool
 calling nativo del LLM, y ver su traza (acción → observación → respuesta
-final) en vivo:
+final) en vivo, con manejo robusto de errores (una tool que falla no tumba
+el request, un límite de iteraciones evita loops infinitos):
 
 - `buscar_eventos`: consulta la agenda interna (parámetros tipados, sin SQL
   libre).

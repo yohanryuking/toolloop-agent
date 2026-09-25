@@ -1,8 +1,8 @@
 # Roadmap — toolloop-agent
 
-Estado: **Sprints 0 a 4 implementados.** Sprints 5-6 documentados a
-continuación como guía de continuación (diseño técnico, no solo la idea
-general del sprint).
+Estado: **Sprints 0 a 5 implementados.** Sprint 6 documentado a continuación
+como guía de continuación (diseño técnico, no solo la idea general del
+sprint).
 
 ---
 
@@ -119,21 +119,37 @@ el generador del stream se empiece a consumir. `chat_stream()` abre y cierra
 su propia sesión (`async with SessionLocal() as session`) dentro del
 generador para que la transacción siga viva durante todo el stream.
 
-## ⬜ Sprint 5 — Robustez
+## ✅ Sprint 5 — Robustez (implementado)
 
-- **Límite de iteraciones**: constante `MAX_AGENT_ITERATIONS` (ej. 8); si se
-  alcanza, el agente responde indicando que no pudo completar la tarea en el
-  límite de pasos, en vez de loopear indefinidamente.
-- **Errores de herramientas**: si una función de tool lanza una excepción, se
-  captura y se devuelve como `tool_result` con `is_error: true` y un mensaje
-  descriptivo, para que el LLM decida cómo continuar (reintentar con otros
-  parámetros, usar otra herramienta, o informar al usuario del fallo) en vez
-  de que el proceso backend se caiga.
-- **Logging estructurado** de cada ejecución (conversation_id, tool usado,
-  parámetros, duración, resultado/error) para debug — un logger dedicado
-  (`app/observability/logger.py`) o integración con algo como `structlog`.
-- **Validación de límites de entrada**: mensajes de usuario con longitud
-  máxima, rate limiting básico si se expone públicamente.
+- [x] **Límite de iteraciones**: `MAX_ITERATIONS` (6) en `app/agent/loop.py`.
+      Al alcanzarlo, `run_agent_stream()` ya no lanza una excepción — emite un
+      paso `final` explicando que no se pudo completar la tarea en los pasos
+      disponibles, y lo loguea como warning. Tanto `/chat` como `/chat/stream`
+      terminan con una respuesta normal (200), nunca con un 500.
+- [x] **Errores de herramientas**: `_execute_tool_use()` envuelve la llamada al
+      handler en un `try/except Exception` — cualquier fallo (parámetros
+      inválidos, error de la tool, lo que sea) se convierte en un
+      `tool_result` con `is_error: true` y un mensaje descriptivo, y el ciclo
+      sigue: el LLM ve el error como observación y decide cómo continuar
+      (pedir los datos de nuevo, probar otra herramienta, avisarle al
+      usuario). Nunca tumba el request con un 500.
+- [x] **Logging estructurado**: `app/observability/logger.py` (logging
+      estándar de Python, sin dependencias nuevas) + líneas `clave=valor`
+      (`conversation_id`, `tool`, `duration_ms`, `error`) en cada ejecución de
+      herramienta y en cada corte por límite de iteraciones — fáciles de
+      grepear o de alimentar a un colector de logs más adelante.
+- [x] **Validación de límites de entrada**: `ChatRequest.message` tiene
+      `min_length=1` y `max_length=4000` (`app/schemas.py`); un mensaje vacío
+      o demasiado largo devuelve `422` automáticamente (validación de
+      Pydantic), antes de siquiera tocar el LLM.
+
+**Fuera de alcance de este sprint (decisión consciente):** rate limiting a
+nivel de API. Es un proyecto de demo de un solo usuario sin autenticación;
+agregar throttling ahora sería resolver un problema que no existe todavía. Si
+el proyecto se expone públicamente sin login, la opción más simple es
+middleware tipo `slowapi` (basado en `limits`) por IP sobre `/api/chat*`, o
+delegarlo a un reverse proxy (nginx, Cloudflare) — no requiere cambios en la
+lógica del agente.
 
 ## ⬜ Sprint 6 — Deploy y presentación
 

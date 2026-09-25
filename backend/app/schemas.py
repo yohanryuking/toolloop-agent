@@ -1,10 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+# Límite generoso para un mensaje de chat; evita que un payload gigante
+# infle innecesariamente el contexto que se le manda al LLM en cada turno.
+MAX_MESSAGE_LENGTH = 4000
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(min_length=1, max_length=MAX_MESSAGE_LENGTH)
     conversation_id: str | None = None
 
 
