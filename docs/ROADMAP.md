@@ -1,6 +1,6 @@
 # Roadmap — toolloop-agent
 
-Estado: **Sprints 0, 1, 2 y 3 implementados.** Sprints 4-6 documentados a
+Estado: **Sprints 0 a 4 implementados.** Sprints 5-6 documentados a
 continuación como guía de continuación (diseño técnico, no solo la idea
 general del sprint).
 
@@ -86,18 +86,38 @@ nunca "query" o "filter" libres.
 email si en algún momento se renderiza como HTML en el frontend (hoy se
 persiste y se muestra como texto plano) — ver Sprint 5.
 
-## ⬜ Sprint 4 — Streaming + panel de traza
+## ✅ Sprint 4 — Streaming + panel de traza (implementado)
 
-- Cambiar `POST /api/chat` a un endpoint SSE (`GET /api/chat/stream` o
-  `POST` con `text/event-stream`) que emite un evento por cada paso del loop:
-  `{"type": "thought" | "action" | "observation" | "final", ...}`.
-- El loop del agente (Sprint 2) debe convertirse en un generador/async
-  generator que yield-ea cada paso en vez de solo devolver el resultado final.
-- Persistir también cada paso en una tabla `agent_steps` (nueva) para poder
-  reconstruir la traza de ejecuciones pasadas, no solo verla en vivo.
-- Frontend: dos paneles lado a lado — chat (igual que Sprint 1) y una traza
-  tipo timeline (pensamiento → acción → observación) que se actualiza en
-  tiempo real vía `EventSource`.
+- [x] Nuevo endpoint `POST /api/chat/stream` (SSE, `text/event-stream`) que
+      emite un evento por cada paso del loop: `{"type": "action" |
+      "observation" | "final" | "error" | "conversation_id" | "done", ...}`.
+      `POST /api/chat` (Sprint 1) se mantiene sin cambios para clientes que
+      solo quieren la respuesta final de una sola vez (y lo siguen usando los
+      tests existentes).
+- [x] `app/agent/loop.py::run_agent_stream()` es ahora un async generator que
+      yield-ea cada paso (`action`/`observation`/`final`); `run_agent_loop()`
+      quedó como wrapper delgado sobre ese generador para no duplicar lógica.
+- [x] Tabla `agent_steps` (nueva, en `app/db/models.py`) donde se persiste
+      cada paso emitido por `/chat/stream`, y `GET
+      /api/conversations/{id}/steps` para reconstruir la traza de una
+      ejecución pasada.
+- [x] Frontend: layout de dos paneles (`frontend/src/App.tsx`) — chat a la
+      izquierda, timeline de traza a la derecha — que se actualiza en vivo
+      paso a paso.
+
+**Nota de implementación (desvío del diseño original):** el endpoint es
+`POST` (necesita mandar el mensaje en el body), así que el frontend no usa
+`EventSource` nativo del browser (que solo soporta `GET`) — en cambio
+`frontend/src/api.ts::streamMessage()` usa `fetch` + `ReadableStream` y
+parsea manualmente los bloques `data: ...\n\n`. Mismo resultado (streaming
+en vivo), mecanismo distinto al que sugería el brief original.
+
+**Gotcha de FastAPI que vale la pena documentar:** `Depends(get_session)` no
+sirve para un `StreamingResponse` — FastAPI cierra las dependencias con
+`yield` apenas la función del endpoint retorna, lo cual pasa *antes* de que
+el generador del stream se empiece a consumir. `chat_stream()` abre y cierra
+su propia sesión (`async with SessionLocal() as session`) dentro del
+generador para que la transacción siga viva durante todo el stream.
 
 ## ⬜ Sprint 5 — Robustez
 

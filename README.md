@@ -8,16 +8,16 @@ calling (Anthropic).
 📄 **Documentación completa:**
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitectura, stack, modelo
   de datos y por qué se eligió SQLite/SQLAlchemy en vez de Supabase.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 3)
-  y el diseño técnico detallado de los sprints restantes (4 a 6) para que
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 4)
+  y el diseño técnico detallado de los sprints restantes (5 y 6) para que
   cualquier desarrollador pueda continuarlos.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisiones de diseño puntuales.
 
-## Estado actual: Sprints 0, 1, 2 y 3
+## Estado actual: Sprints 0 a 4
 
-Lo que funciona hoy: un endpoint de chat (`POST /api/chat`) que mantiene
-historial de conversación en SQLite y que puede encadenar tres herramientas
-vía tool calling nativo del LLM:
+Lo que funciona hoy: el agente puede encadenar tres herramientas vía tool
+calling nativo del LLM, y ver su traza (acción → observación → respuesta
+final) en vivo:
 
 - `buscar_eventos`: consulta la agenda interna (parámetros tipados, sin SQL
   libre).
@@ -26,8 +26,10 @@ vía tool calling nativo del LLM:
 - `enviar_email`: "envía" un email insertando un row en `sent_emails` (sin
   SMTP real), solo cuando el usuario lo pide explícitamente.
 
-Streaming de la traza paso a paso queda para el Sprint 4 (ver
-`docs/ROADMAP.md`).
+Dos endpoints de chat: `POST /api/chat` (respuesta final de una sola vez) y
+`POST /api/chat/stream` (SSE, transmite cada paso a medida que ocurre — es el
+que usa el frontend). `GET /api/conversations/{id}/steps` devuelve la traza
+persistida de una conversación.
 
 Para probar con datos de ejemplo:
 

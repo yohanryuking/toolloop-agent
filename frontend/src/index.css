@@ -5,7 +5,7 @@ body {
 }
 
 .app {
-  max-width: 640px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
@@ -15,12 +15,83 @@ body {
   font-size: 0.9rem;
 }
 
+.panels {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.panel {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.panel h2 {
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
 .chat {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-height: 300px;
+  max-height: 500px;
+  overflow-y: auto;
   margin-bottom: 1rem;
+}
+
+.trace {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 300px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.trace-empty {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.trace-step {
+  border-left: 3px solid #d1d5db;
+  padding: 0.25rem 0 0.25rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.trace-step p {
+  margin: 0.1rem 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.trace-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.trace-action {
+  border-left-color: #4338ca;
+}
+
+.trace-observation {
+  border-left-color: #0891b2;
+}
+
+.trace-final {
+  border-left-color: #16a34a;
+}
+
+.trace-error {
+  border-left-color: #b91c1c;
 }
 
 .bubble {

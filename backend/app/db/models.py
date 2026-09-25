@@ -42,6 +42,22 @@ class Message(Base):
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
 
 
+class AgentStep(Base):
+    """Un paso individual (acción/observación/respuesta final) de una
+    ejecución del agente, para poder reconstruir la traza completa más
+    adelante, no solo verla en vivo por SSE."""
+
+    __tablename__ = "agent_steps"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"))
+    step_index: Mapped[int] = mapped_column()
+    step_type: Mapped[str] = mapped_column(String(20))  # "action" | "observation" | "final" | "error"
+    tool_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    payload: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class Event(Base):
     """Evento de agenda. Usado por la tool `buscar_eventos` (Sprint 2)."""
 

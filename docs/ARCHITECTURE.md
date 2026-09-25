@@ -86,8 +86,10 @@ usan se conectan recién en Sprints 2 y 3):
 - **`sent_emails`**: registro de "envíos" simulados con `id`, `recipient`,
   `subject`, `body`, `created_at`. Usada por la tool `enviar_email` (Sprint 3).
 - **`conversations`** / **`messages`**: historial de conversación del agente
-  (Sprint 1), para poder mantener contexto entre turnos y, más adelante,
-  reconstruir la traza completa de una ejecución.
+  (Sprint 1), para poder mantener contexto entre turnos.
+- **`agent_steps`** (Sprint 4): cada acción/observación/respuesta final que
+  emite `POST /api/chat/stream`, para poder reconstruir la traza completa de
+  una ejecución pasada (no solo verla en vivo).
 
 Ver `backend/app/db/models.py` para el detalle de columnas.
 
@@ -111,9 +113,9 @@ backend/
       email.py               # Tool `enviar_email`: inserta un row en sent_emails
       registry.py         # TOOL_REGISTRY: name -> ToolSpec(schema, handler)
     agent/
-      loop.py             # Ciclo ReAct: llama al LLM, ejecuta tools, repite
+      loop.py             # run_agent_stream(): generador ReAct; run_agent_loop(): wrapper no-streaming
     api/
-      chat.py            # POST /api/chat — arma el historial y llama a run_agent_loop
+      chat.py            # POST /api/chat, POST /api/chat/stream (SSE), GET .../steps
   tests/
     test_chat.py
     test_agent_loop.py
@@ -125,8 +127,8 @@ backend/
   .env.example
 frontend/
   src/
-    App.tsx             # UI de chat mínima
-    api.ts               # cliente HTTP hacia el backend
+    App.tsx             # UI de dos paneles: chat + traza en vivo
+    api.ts               # cliente HTTP (fetch simple + streamMessage con SSE manual)
   ...
 docs/
   ARCHITECTURE.md (este archivo)
@@ -137,30 +139,34 @@ docker-compose.yml
 
 ## Alcance implementado hasta ahora
 
-Se implementaron **Sprint 0 (setup)**, **Sprint 1 (loop básico sin
-herramientas)**, **Sprint 2 (primera herramienta: consulta a BD)** y
-**Sprint 3 (búsqueda web + email simulado)** del roadmap original:
+Se implementaron los Sprints **0 (setup)**, **1 (loop básico sin
+herramientas)**, **2 (primera herramienta: consulta a BD)**, **3 (búsqueda
+web + email simulado)** y **4 (streaming + panel de traza)** del roadmap
+original:
 
 - Scaffolding de FastAPI (backend) y React+Vite (frontend).
 - Cliente LLM (Anthropic) configurado y probado con un endpoint de chat real.
-- Tablas `events`, `sent_emails`, `conversations`, `messages` creadas en SQLite
-  vía SQLAlchemy.
-- Endpoint `POST /api/chat` que mantiene historial de mensajes por conversación
-  y llama al ciclo del agente (`run_agent_loop`).
+- Tablas `events`, `sent_emails`, `conversations`, `messages`, `agent_steps`
+  creadas en SQLite vía SQLAlchemy.
+- Endpoint `POST /api/chat` (respuesta final de una sola vez) y `POST
+  /api/chat/stream` (SSE, paso a paso), ambos sobre el mismo ciclo ReAct
+  (`app/agent/loop.py`).
 - **Tool calling real con tres herramientas**, todas registradas en
-  `app/tools/registry.py` y ejecutadas por el ciclo ReAct en
-  `app/agent/loop.py`:
+  `app/tools/registry.py` y ejecutadas por el ciclo ReAct:
   - `buscar_eventos`: consulta parametrizada a la BD (sin SQL libre).
   - `buscar_web`: mock por defecto (`app/tools/mock_web_data.py`), o Tavily
     real si hay `TAVILY_API_KEY` configurada.
   - `enviar_email`: inserta un row en `sent_emails` (sin SMTP real), solo
     cuando el usuario lo pide explícitamente (reforzado en el system prompt).
-- Frontend mínimo que consume el endpoint de chat y muestra la conversación
-  (todavía no muestra la traza de tool calling — eso es Sprint 4).
+- **Traza en vivo**: `POST /api/chat/stream` transmite cada acción/observación
+  por SSE y la persiste en `agent_steps`; `GET
+  /api/conversations/{id}/steps` permite reconstruir la traza de una
+  ejecución pasada. El frontend muestra un panel de chat y un panel de traza
+  lado a lado, actualizados en tiempo real.
 - `Dockerfile` + `docker-compose.yml` para correr el stack completo localmente
   (pipeline de "deploy" local, ver `ROADMAP.md` para deploy real en Sprint 6).
 
-Los Sprints 4 a 6 (streaming/traza, robustez, deploy final) **no están
-implementados** todavía; quedan completamente documentados en `ROADMAP.md`
-con su diseño técnico para que cualquier desarrollador pueda continuarlos sin
-tener que re-derivar decisiones.
+Los Sprints 5 y 6 (robustez, deploy final) **no están implementados**
+todavía; quedan completamente documentados en `ROADMAP.md` con su diseño
+técnico para que cualquier desarrollador pueda continuarlos sin tener que
+re-derivar decisiones.
