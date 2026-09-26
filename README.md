@@ -1,50 +1,53 @@
 # toolloop-agent
 
-Agente autónomo con function calling que encadena búsqueda web, consultas a
-base de datos y envío de emails (simulado), mostrando paso a paso su ciclo de
-pensamiento → acción → observación. Stack: FastAPI · React · LLM con tool
+🇪🇸 Versão em espanhol: [README.es.md](README.es.md)
+
+Agente autônomo com function calling que encadeia busca na web, consultas ao
+banco de dados e envio de e-mails (simulado), mostrando passo a passo seu ciclo
+de pensamento → ação → observação. Stack: FastAPI · React · LLM com tool
 calling (Anthropic).
 
-📄 **Documentación completa:**
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitectura, stack, modelo
-  de datos y por qué se eligió SQLite/SQLAlchemy en vez de Supabase.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — qué está implementado (Sprints 0 a 5)
-  y el estado del Sprint 6 (repo listo para deploy).
-- [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisiones de diseño puntuales.
-- [`docs/DEPLOY.md`](docs/DEPLOY.md) — guía paso a paso para deployar
-  (Fly.io + Vercel, alternativas, migración a Postgres si hace falta).
-- [`docs/BLOG_POST.md`](docs/BLOG_POST.md) — borrador del post sobre el
-  patrón ReAct y las decisiones de diseño del proyecto.
+📄 **Documentação completa:**
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitetura, stack, modelo
+  de dados e por que SQLite/SQLAlchemy foi escolhido em vez do Supabase.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — o que está implementado (Sprints 0 a 5)
+  e o status da Sprint 6 (repositório pronto para deploy).
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — decisões de design pontuais.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — guia passo a passo para fazer o deploy
+  (Fly.io + Vercel, alternativas, migração para Postgres se necessário).
+- [`docs/BLOG_POST.md`](docs/BLOG_POST.md) — rascunho do post sobre o
+  padrão ReAct e as decisões de design do projeto.
 
-## Estado actual: Sprints 0 a 5
+## Status atual: Sprints 0 a 5
 
-Lo que funciona hoy: el agente puede encadenar tres herramientas vía tool
-calling nativo del LLM, y ver su traza (acción → observación → respuesta
-final) en vivo, con manejo robusto de errores (una tool que falla no tumba
-el request, un límite de iteraciones evita loops infinitos):
+O que já funciona: o agente consegue encadear três ferramentas via tool
+calling nativo do LLM, e é possível acompanhar seu trace (ação → observação →
+resposta final) em tempo real, com tratamento robusto de erros (uma tool que
+falha não derruba a requisição, e um limite de iterações evita loops infinitos):
 
-- `buscar_eventos`: consulta la agenda interna (parámetros tipados, sin SQL
-  libre).
-- `buscar_web`: búsqueda web mockeada por defecto (ej. clima), o real si se
-  configura `TAVILY_API_KEY`.
-- `enviar_email`: "envía" un email insertando un row en `sent_emails` (sin
-  SMTP real), solo cuando el usuario lo pide explícitamente.
+- `buscar_eventos`: consulta a agenda interna (parâmetros tipados, sem SQL
+  livre).
+- `buscar_web`: busca na web mockada por padrão (ex.: clima), ou real se
+  `TAVILY_API_KEY` estiver configurada.
+- `enviar_email`: "envia" um e-mail inserindo uma linha em `sent_emails` (sem
+  SMTP real), somente quando o usuário pede isso explicitamente.
 
-Dos endpoints de chat: `POST /api/chat` (respuesta final de una sola vez) y
-`POST /api/chat/stream` (SSE, transmite cada paso a medida que ocurre — es el
-que usa el frontend). `GET /api/conversations/{id}/steps` devuelve la traza
-persistida de una conversación.
+Dois endpoints de chat: `POST /api/chat` (resposta final de uma só vez) e
+`POST /api/chat/stream` (SSE, transmite cada passo à medida que acontece — é o
+que o frontend usa). `GET /api/conversations/{id}/steps` retorna o trace
+persistido de uma conversa.
 
-Para probar con datos de ejemplo:
+Para testar com dados de exemplo:
 
 ```bash
 cd backend && python -m scripts.seed_events
 ```
 
-Y luego preguntarle al agente algo como *"revisá el clima de mañana y si
-tenemos un evento al aire libre ese día, avisá al equipo por email"*.
+Em seguida, pergunte ao agente algo como *"veja a previsão do tempo para
+amanhã e, se tivermos um evento ao ar livre nesse dia, avise a equipe por
+e-mail"*.
 
-## Cómo correrlo
+## Como executar
 
 ### Backend
 
@@ -52,13 +55,13 @@ tenemos un evento al aire libre ese día, avisá al equipo por email"*.
 cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # y completar ANTHROPIC_API_KEY
+cp .env.example .env   # e preencher ANTHROPIC_API_KEY
 uvicorn app.main:app --reload
 ```
 
-Corre en `http://localhost:8000`. Docs interactivas en `/docs`.
+Roda em `http://localhost:8000`. Documentação interativa em `/docs`.
 
-Tests:
+Testes:
 
 ```bash
 pytest
@@ -72,9 +75,9 @@ npm install
 npm run dev
 ```
 
-Corre en `http://localhost:5173`.
+Roda em `http://localhost:5173`.
 
-### Con Docker
+### Com Docker
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
@@ -83,13 +86,13 @@ docker compose up --build
 
 ### Deploy
 
-Ver [`docs/DEPLOY.md`](docs/DEPLOY.md) para el paso a paso (backend en
-Fly.io, frontend en Vercel, y cómo conectarlos).
+Veja [`docs/DEPLOY.md`](docs/DEPLOY.md) para o passo a passo (backend no
+Fly.io, frontend na Vercel e como conectá-los).
 
-## Estructura
+## Estrutura
 
 ```
 backend/    # FastAPI + SQLAlchemy (SQLite) + cliente Anthropic
 frontend/   # React + Vite + TypeScript
-docs/       # Arquitectura, roadmap y decisiones de diseño
+docs/       # Arquitetura, roadmap e decisões de design
 ```
